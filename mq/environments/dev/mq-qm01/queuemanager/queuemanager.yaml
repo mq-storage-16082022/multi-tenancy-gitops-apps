@@ -46,11 +46,14 @@ spec:
         memory: 1Gi
     storage:
       persistedData:
-        enabled: false
+        class: ibmc-block-gold
+        enabled: true
       queueManager:
-        type: ephemeral
+        class: ibmc-block-gold
+        type: persistent-claim
       recoveryLogs:
-        enabled: false
+        class: ibmc-block-gold
+        enabled: true
   securityContext:
     initVolumeAsRoot: false
   template:
