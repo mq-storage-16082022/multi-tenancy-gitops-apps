@@ -63,45 +63,45 @@ spec:
           value: "$(tasks.setup.results.image-repository)"
         - name: image-tag
           value: "$(tasks.setup.results.image-tag)"
-    - name: smoke-tests-mq
-      taskRef:
-        name: ibm-smoke-tests-mq
-      runAfter:
-        - build
-      params:
-        - name: git-url
-          value: "$(tasks.setup.results.git-url)"
-        - name: git-revision
-          value: "$(tasks.setup.results.git-revision)"
-        - name: source-dir
-          value: "$(tasks.setup.results.source-dir)"
-        - name: image-server
-          value: "$(tasks.setup.results.image-server)"
-        - name: image-namespace
-          value: "$(tasks.setup.results.image-namespace)"
-        - name: image-repository
-          value: "$(tasks.setup.results.image-repository)"
-        - name: image-tag
-          value: "$(tasks.setup.results.image-tag)"
-        - name: app-namespace
-          value: "$(tasks.setup.results.app-namespace)"
-        - name: app-name
-          value: "$(tasks.setup.results.app-name)"
-        - name: deploy-ingress-type
-          value: "$(tasks.setup.results.deploy-ingress-type)"
-        - name: tools-image
-          value: "$(tasks.setup.results.tools-image)"
-        - name : security
-          value: "$(params.security)"
-        - name: storage
-          value: "$(params.storage)"
-        - name : ha
-          value: "$(params.ha)"
+    # - name: smoke-tests-mq
+    #   taskRef:
+    #     name: ibm-smoke-tests-mq
+    #   runAfter:
+    #     - build
+    #   params:
+    #     - name: git-url
+    #       value: "$(tasks.setup.results.git-url)"
+    #     - name: git-revision
+    #       value: "$(tasks.setup.results.git-revision)"
+    #     - name: source-dir
+    #       value: "$(tasks.setup.results.source-dir)"
+    #     - name: image-server
+    #       value: "$(tasks.setup.results.image-server)"
+    #     - name: image-namespace
+    #       value: "$(tasks.setup.results.image-namespace)"
+    #     - name: image-repository
+    #       value: "$(tasks.setup.results.image-repository)"
+    #     - name: image-tag
+    #       value: "$(tasks.setup.results.image-tag)"
+    #     - name: app-namespace
+    #       value: "$(tasks.setup.results.app-namespace)"
+    #     - name: app-name
+    #       value: "$(tasks.setup.results.app-name)"
+    #     - name: deploy-ingress-type
+    #       value: "$(tasks.setup.results.deploy-ingress-type)"
+    #     - name: tools-image
+    #       value: "$(tasks.setup.results.tools-image)"
+    #     - name : security
+    #       value: "$(params.security)"
+    #     - name: storage
+    #       value: "$(params.storage)"
+    #     - name : ha
+    #       value: "$(params.ha)"
     - name: tag-release
       taskRef:
         name: ibm-tag-release-v2-6-13
       runAfter:
-        - smoke-tests-mq
+        - build
       params:
         - name: git-url
           value: "$(tasks.setup.results.git-url)"
