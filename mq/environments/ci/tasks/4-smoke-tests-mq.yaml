@@ -240,3 +240,4 @@ spec:
 
           if [[ "$(params.storage)" == "true" ]]; then
             kubectl delete --all pvc -n ${APP_NAMESPACE}
+          fi
