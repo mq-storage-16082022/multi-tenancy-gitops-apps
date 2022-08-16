@@ -89,85 +89,6 @@ spec:
         set -x
         cd $(params.source-dir)
         git checkout $(params.git-revision)
-    - name: replace-image
-      image: $(params.tools-image)
-      workingDir: $(params.source-dir)
-      env:
-        - name: TLS_SECRET_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: ibmcloud-config
-              key: TLS_SECRET_NAME
-              optional: true
-        - name: INGRESS_SUBDOMAIN
-          valueFrom:
-            configMapKeyRef:
-              name: ibmcloud-config
-              key: INGRESS_SUBDOMAIN
-              optional: true
-      script: |
-          #!/usr/bin/env bash
-          set -ex
-          GIT_URL="$(params.git-url)"
-          GIT_REVISION="$(params.git-revision)"
-          APP_NAME="$(params.app-name)"
-          IMAGE_SERVER="$(params.image-server)"
-          IMAGE_NAMESPACE="$(params.image-namespace)"
-          IMAGE_REPOSITORY="$(params.image-repository)"
-          IMAGE_URL="${IMAGE_SERVER}/${IMAGE_NAMESPACE}/${IMAGE_REPOSITORY}"
-          IMAGE_VERSION="$(params.image-tag)"
-
-          if [[ $APP_NAME == *"qm"* ]] ; then
-            if [[ "$(params.ha)" == "true" ]] ; then
-              export YAML_ROOT="$(params.yaml)/native-ha-qmgr"
-            elif [[ "$(params.storage)" == "true" ]]; then
-              export YAML_ROOT="$(params.yaml)/durable-qmgr"
-            else
-              export YAML_ROOT="$(params.yaml)/generic-qmgr"
-            fi
-          else
-            export YAML_ROOT="$(params.yaml)"
-          fi
-
-          echo "YAML_ROOT: $YAML_ROOT"
-
-          if [[ -f "$YAML_ROOT/queuemanager.yaml" ]]; then
-            export YAML="$(params.yaml)/generic-qmgr/queuemanager.yaml"
-          elif [[ -f "$YAML_ROOT/deployment.yaml" ]]; then
-            export YAML="$YAML_ROOT/deployment.yaml"
-          elif [[ -f statefulset.yaml ]]; then
-            export YAML="$YAML_ROOT/statefulset.yaml"
-          else
-            echo "Error: No deployment file is detected"
-            exit 1
-          fi
-
-          echo "YAML: $YAML"
-          export YAML_NEW="./$YAML-new.yaml"
-          echo "YAML_NEW: $YAML_NEW"
-
-          PREFIX=""
-          if [[ -f "${YAML}" ]]; then
-            sed "/image/ s|replace|${IMAGE_URL}:${IMAGE_VERSION}|g" $YAML > $YAML_NEW
-            rm ${YAML}
-            mv ${YAML_NEW} ${YAML}
-          fi
-
-          kustomize build ./$YAML_ROOT/ > release.yaml
-
-          awk '
-          /apiVersion:/{
-            close(file)
-            file="queuemanager.yaml"
-          }
-          file!="" && !/^--/{
-            print > (file)
-          }
-          ' release.yaml
-
-          cat ./queuemanager.yaml
-      securityContext:
-        privileged: true
     - name: gitops
       image: $(params.tools-image)
       workingDir: $(params.source-dir)
@@ -229,7 +150,66 @@ spec:
       script: |
           #!/usr/bin/env bash
           set -ex
+
+          GIT_URL="$(params.git-url)"
+          GIT_REVISION="$(params.git-revision)"
           APP_NAME="$(params.app-name)"
+          IMAGE_SERVER="$(params.image-server)"
+          IMAGE_NAMESPACE="$(params.image-namespace)"
+          IMAGE_REPOSITORY="$(params.image-repository)"
+          IMAGE_URL="${IMAGE_SERVER}/${IMAGE_NAMESPACE}/${IMAGE_REPOSITORY}"
+          IMAGE_VERSION="$(params.image-tag)"
+
+          if [[ $APP_NAME == *"qm"* ]] ; then
+            if [[ "$(params.ha)" == "true" ]] ; then
+              export YAML_ROOT="$(params.yaml)/native-ha-qmgr"
+            elif [[ "$(params.storage)" == "true" ]]; then
+              export YAML_ROOT="$(params.yaml)/durable-qmgr"
+            else
+              export YAML_ROOT="$(params.yaml)/generic-qmgr"
+            fi
+          else
+            export YAML_ROOT="$(params.yaml)"
+          fi
+
+          echo "YAML_ROOT: $YAML_ROOT"
+
+          if [[ -f "$YAML_ROOT/queuemanager.yaml" ]]; then
+            export YAML="$(params.yaml)/generic-qmgr/queuemanager.yaml"
+          elif [[ -f "$YAML_ROOT/deployment.yaml" ]]; then
+            export YAML="$YAML_ROOT/deployment.yaml"
+          elif [[ -f statefulset.yaml ]]; then
+            export YAML="$YAML_ROOT/statefulset.yaml"
+          else
+            echo "Error: No deployment file is detected"
+            exit 1
+          fi
+
+          echo "YAML: $YAML"
+          export YAML_NEW="./$YAML-new.yaml"
+          echo "YAML_NEW: $YAML_NEW"
+
+          PREFIX=""
+          if [[ -f "${YAML}" ]]; then
+            sed "/image/ s|replace|${IMAGE_URL}:${IMAGE_VERSION}|g" $YAML > $YAML_NEW
+            rm ${YAML}
+            mv ${YAML_NEW} ${YAML}
+          fi
+
+          kustomize build ./$YAML_ROOT/ > release.yaml
+
+          awk '
+          /apiVersion:/{
+            close(file)
+            file="queuemanager.yaml"
+          }
+          file!="" && !/^--/{
+            print > (file)
+          }
+          ' release.yaml
+
+          cat ./queuemanager.yaml
+
           SUBDIR="$(params.subdir)"
           if [[ -z "${SUBDIR}" ]]; then
             SUBDIR="${APP_NAME}"
