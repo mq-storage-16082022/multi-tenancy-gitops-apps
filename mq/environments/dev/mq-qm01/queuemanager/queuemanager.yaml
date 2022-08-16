@@ -1,21 +1,20 @@
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
 metadata:
+  name: qm1
   annotations:
     argocd.argoproj.io/sync-wave: "300"
     helm.sh/hook-weight: "300"
-  name: qm1
 spec:
   license:
     accept: true
+
     license: L-RJON-BZFQU2
+
     use: NonProduction
   queueManager:
-    availability:
-      type: SingleInstance
     debug: false
-    image: image-registry.openshift-image-registry.svc:5000/ci/mq-qm01:0.0.1
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
     livenessProbe:
       failureThreshold: 1
       initialDelaySeconds: 90
@@ -25,12 +24,12 @@ spec:
     logFormat: Basic
     metrics:
       enabled: true
-    mqsc:
-    - configMap:
-        items:
-        - static-definitions.mqsc
-        name: mqsc-configmap
     name: QM1
+    mqsc:
+      - configMap:
+          name: mqsc-configmap
+          items:
+            - static-definitions.mqsc
     readinessProbe:
       failureThreshold: 1
       initialDelaySeconds: 10
@@ -44,41 +43,30 @@ spec:
       requests:
         cpu: "1"
         memory: 1Gi
+
+    availability:
+      type: SingleInstance
+
+    image: "image-registry.openshift-image-registry.svc:5000/ci/mq-qm01:0.0.1"
+    imagePullPolicy: Always
+
     storage:
       persistedData:
-        class: ibmc-block-gold
-        enabled: true
+        enabled: false
       queueManager:
-        class: ibmc-block-gold
-        type: persistent-claim
+        type: ephemeral
       recoveryLogs:
-        class: ibmc-block-gold
-        enabled: true
+        enabled: false
+
   securityContext:
     initVolumeAsRoot: false
   template:
     pod:
       containers:
-      - env:
+      - name: qmgr
+        env:
         - name: MQSNOAUT
           value: "yes"
-        name: qmgr
-        volumeMounts:
-        - mountPath: /mq-config
-          name: config-volume-scripts
-          readOnly: true
-        - mountPath: /dynamic-mq-config-mqsc
-          name: dynamic-config-volume-mqsc
-          readOnly: true
-      volumes:
-      - configMap:
-          defaultMode: 511
-          name: scripts-configmap
-        name: config-volume-scripts
-      - configMap:
-          defaultMode: 511
-          name: dynamic-mqsc-configmap
-        name: dynamic-config-volume-mqsc
   terminationGracePeriodSeconds: 30
   tracing:
     agent: {}
