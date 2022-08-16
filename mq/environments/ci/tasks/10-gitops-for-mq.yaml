@@ -121,7 +121,7 @@ spec:
             if [[ "$(params.ha)" == "true" ]] ; then
               export YAML_ROOT="$(params.yaml)/native-ha-qmgr"
             elif [[ "$(params.storage)" == "true" ]]; then
-              eport YAML_ROOT="$(params.yaml)/durable-qmgr"
+              export YAML_ROOT="$(params.yaml)/durable-qmgr"
             else
               export YAML_ROOT="$(params.yaml)/generic-qmgr"
             fi
